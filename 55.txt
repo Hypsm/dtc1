@@ -1,0 +1,423 @@
+<NE-5>dis cu
+!Software Version V800R021C00SPC100
+!Last configuration was updated at 2026-06-12 04:17:52+00:00 by huawei
+!Last configuration was saved at 2023-04-14 03:01:55+00:00 by huawei1
+#
+sysname NE-5
+#
+set neid 75c27e
+#
+undo FTP server-source all-interface
+undo FTP ipv6 server-source all-interface
+#
+set service-mode forwarding-mode compatible
+#
+service-template template-default0
+#
+service-template template-default1
+#
+service-template template-default2
+#
+service-template template-default3
+#
+service-template template-default4
+#
+ntp-service server source-interface all disable
+ntp-service ipv6 server source-interface all disable
+#
+undo telnet ipv6 server enable
+telnet server-source all-interface
+undo telnet ipv6 server-source all-interface
+#
+diffserv domain default
+#
+diffserv domain 5p3d
+#
+soc
+#
+ip vpn-instance VPNA
+ ipv4-family
+  route-distinguisher 500:1
+  apply-label per-instance
+  vpn-target 1:1 export-extcommunity
+  vpn-target 1:1 import-extcommunity
+#
+ip vpn-instance __LOCAL_OAM_VPN__
+ ipv4-family
+#
+ip dcn vpn-instance __dcn_vpn__
+ ipv4-family
+#
+undo radius local-ip all
+#
+pnp default route 10.175.188.1 vpn-instance __LOCAL_OAM_VPN__
+#
+bfd
+ mpls-passive
+#
+mpls lsr-id 10.0.5.5
+#
+mpls
+ mpls bfd enable
+ mpls bfd-trigger host
+ mpls bfd min-tx-interval 50 min-rx-interval 50
+#
+mpls l2vpn
+#
+mpls ldp
+ #
+ ipv4-family
+#
+mpls ldp remote-peer 10.0.1.1
+ remote-ip 10.0.1.1
+#
+mpls ldp remote-peer 10.0.2.2
+ remote-ip 10.0.2.2
+#
+dhcp server request-packet all-interface disable
+#
+dot1x-template 1
+#
+aaa
+ local-user root password irreversible-cipher +Hv$!xKCa#UY6\$GWJ!N4[QH.O/'HIa@AoURN`>;R"Z8PtIa\3AZAy6Sa60(C6GCN
+ local-user root service-type ssh
+ local-user root level 3
+ local-user root state block fail-times 3 interval 5
+ local-user root expire 2000-01-01
+ local-user huawei password irreversible-cipher $1c$Bv'l5j#!HA$Qt*rFDz^[+`0f;FKQ;KQQH~vGPp+aTyByRQ8`dMH$
+ local-user huawei service-type ftp telnet
+ local-user huawei password-force-change disable
+ local-user huawei level 3
+ local-user huawei state block fail-times 3 interval 5
+ local-user huawei1 password irreversible-cipher $1c$9TE2Bz~G{Y$zyex<ZT<};Ja\{Blj\04)!B10>NX8V&UZ*89N1V5$
+ local-user huawei1 service-type ftp telnet
+ local-user huawei1 level 3
+ local-user huawei1 state block fail-times 3 interval 5
+ #
+ authentication-scheme default0
+ #
+ authentication-scheme default1
+ #
+ authentication-scheme default
+  authentication-mode local radius
+ #
+ authorization-scheme default
+ #
+ accounting-scheme default0
+ #
+ accounting-scheme default1
+ #
+ domain default0
+ #
+ domain default1
+ #
+ domain default_admin
+#
+license
+#
+segment-routing ipv6
+ encapsulation source-address 2001:DB8:5::5
+ locator MAR5 ipv6-prefix 2001:DB8:100:5:: 84 static 12 args 16
+  opcode ::2 end-op
+#
+isis 1
+ is-level level-2
+ timer lsp-generation 1 50 50 level-2
+ bfd all-interfaces enable
+ bfd all-interfaces min-tx-interval 10 min-rx-interval 10 frr-binding
+ network-entity 86.0100.0001.0100.0000.5005.00
+ avoid-microloop frr-protected
+ avoid-microloop frr-protected rib-update-delay 5000
+ is-name MAR5
+ timer spf 1 50 50
+ traffic-eng level-2
+ set-overload on-startup send-sa-bit 120 allow external
+ frr
+  loop-free-alternate level-2
+  remote-lfa tunnel ldp level-2
+  ti-lfa level-2
+ #
+ ipv6 enable topology ipv6
+ ipv6 bfd all-interfaces enable
+ ipv6 bfd all-interfaces min-tx-interval 10 min-rx-interval 10 frr-binding
+ ipv6 traffic-eng level-2
+ segment-routing ipv6 locator MAR5
+ ipv6 avoid-microloop segment-routing
+ ipv6 avoid-microloop segment-routing rib-update-delay 10000
+ ipv6 frr
+  loop-free-alternate level-2
+  ti-lfa level-2
+ #
+#
+interface Virtual-Template0
+ ppp authentication-mode auto
+#
+interface GigabitEthernet0/0/0
+ speed auto
+ duplex auto
+ undo shutdown
+ ip address 10.175.189.114 255.255.252.0
+#
+interface GigabitEthernet1/0/0
+ description To MAR6
+ undo shutdown
+ ipv6 enable
+ ip address 10.5.6.1 255.255.255.252
+ ipv6 address 10:5:6::1/126
+ isis enable 1
+ isis ipv6 enable 1
+ isis circuit-type p2p
+ isis ipv6 cost 100
+ isis cost 100
+ isis ldp-sync
+ isis peer hold-max-cost timer 60000
+ mpls
+ mpls ldp
+ dcn
+#
+interface GigabitEthernet1/0/1
+ undo shutdown
+ dcn
+#
+interface GigabitEthernet1/0/1.100
+ vlan-type dot1q 100
+ ip binding vpn-instance VPNA
+ ip address 192.168.1.2 255.255.255.252
+#
+interface GigabitEthernet1/0/1.200
+ vlan-type dot1q 200
+ mpls l2vc 10.0.1.1 205 tunnel-policy IPRAN control-word
+ mpls l2vc 10.0.2.2 206 tunnel-policy IPRAN control-word secondary
+ mpls l2vpn redundancy master
+ mpls l2vpn reroute delay 500
+ mpls l2vpn stream-dual-receiving
+#
+interface GigabitEthernet1/0/2
+ description To MER3
+ undo shutdown
+ ipv6 enable
+ ip address 10.3.5.2 255.255.255.252
+ ipv6 address 10:3:5::2/126
+ isis enable 1
+ isis ipv6 enable 1
+ isis circuit-type p2p
+ isis ipv6 cost 100
+ isis cost 100
+ isis ldp-sync
+ isis peer hold-max-cost timer 60000
+ mpls
+ mpls ldp
+ dcn
+#
+interface GigabitEthernet1/0/3
+ undo shutdown
+ dcn
+#
+interface GigabitEthernet1/0/4
+ undo shutdown
+#
+interface GigabitEthernet3/0/0
+ undo shutdown
+ dcn
+#
+interface GigabitEthernet3/0/1
+ undo shutdown
+ dcn
+#
+interface GigabitEthernet3/0/2
+ undo shutdown
+ dcn
+#
+interface GigabitEthernet3/0/3
+ undo shutdown
+ dcn
+#
+interface GigabitEthernet3/0/4
+ undo shutdown
+#
+interface GigabitEthernet3/0/5
+ undo shutdown
+#
+interface GigabitEthernet3/0/6
+ undo shutdown
+#
+interface GigabitEthernet3/0/7
+ undo shutdown
+#
+interface GigabitEthernet3/0/8
+ undo shutdown
+#
+interface GigabitEthernet3/0/9
+ undo shutdown
+#
+interface GigabitEthernet3/0/10
+ undo shutdown
+#
+interface GigabitEthernet3/0/11
+ undo shutdown
+#
+interface GigabitEthernet3/0/12
+ undo shutdown
+#
+interface GigabitEthernet3/0/13
+ undo shutdown
+#
+interface GigabitEthernet3/0/14
+ undo shutdown
+#
+interface GigabitEthernet3/0/15
+ undo shutdown
+#
+interface GigabitEthernet3/0/16
+ undo shutdown
+#
+interface GigabitEthernet3/0/17
+ undo shutdown
+#
+interface GigabitEthernet3/0/18
+ undo shutdown
+#
+interface GigabitEthernet3/0/19
+ undo shutdown
+#
+interface LoopBack0
+ ipv6 enable
+ ip address 10.0.5.5 255.255.255.255
+ ipv6 address 2001:DB8:5::5/128
+ isis enable 1
+ isis ipv6 enable 1
+#
+interface LoopBack2147483647
+ description DCN loopback interface
+ ip binding vpn-instance __dcn_vpn__
+ ip address 128.117.194.126 255.255.0.0
+#
+interface NULL0
+#
+bgp 100
+ router-id 10.0.5.5
+ graceful-restart
+ graceful-restart peer-reset
+ peer 10.0.3.3 as-number 100
+ peer 10.0.3.3 connect-interface LoopBack0
+ peer 10.0.4.4 as-number 100
+ peer 10.0.4.4 connect-interface LoopBack0
+ peer 2001:DB8:3::3 as-number 100
+ peer 2001:DB8:3::3 connect-interface LoopBack0
+ peer 2001:DB8:4::4 as-number 100
+ peer 2001:DB8:4::4 connect-interface LoopBack0
+ #
+ ipv4-family unicast
+  undo synchronization
+  undo peer 10.0.3.3 enable
+  undo peer 10.0.4.4 enable
+ #
+ ipv4-family vpnv4
+  policy vpn-target
+  bestroute nexthop-resolved tunnel
+  route-select delay 180
+  peer 10.0.3.3 enable
+  peer 10.0.4.4 enable
+ #
+ ipv4-family vpn-instance VPNA
+  import-route direct
+ #
+ l2vpn-family evpn
+  policy vpn-target
+  route-select delay 180
+  peer 2001:DB8:3::3 enable
+  peer 2001:DB8:4::4 enable
+#
+ospf 65534 vpn-instance __dcn_vpn__
+ description DCN ospf create by default
+ opaque-capability enable
+ hostname
+ vpn-instance-capability simple
+ area 0.0.0.0
+  network 0.0.0.0 255.255.255.255
+#
+!The DCN function implements the capability of plug-and-play for this device.
+!A NE IP address based on the unique NE ID is automatically generated in VPN
+!of DCN. It is recommended that the NE IP address be changed to the planned
+!one by running the ne-ip X.X.X.X <MASK> command after the device being online.
+dcn
+ set compatible mode
+ connect-mode security
+ ssl verify-mode dual
+ bandwidth ethernet 1024
+ bandwidth pos 1024
+ bandwidth serial 192
+#
+ip route-static 10.175.0.0 255.255.0.0 10.175.188.1
+ip route-static 172.0.0.0 255.0.0.0 10.175.188.1
+#
+snmp-agent local-engineid 800007DB038CE5EF1A5FC1
+#
+snmp-agent sys-info version v3
+#
+undo snmp-agent protocol source-status all-interface
+undo snmp-agent protocol source-status ipv6 all-interface
+#
+undo snmp-agent proxy protocol source-status all-interface
+undo snmp-agent proxy protocol source-status ipv6 all-interface
+#
+lldp enable
+#
+undo web-auth-server source-ip all
+#
+undo web-auth-server source-ipv6 all
+#
+stelnet server enable
+snetconf server enable
+ssh user root
+ssh user root authentication-type password
+ssh user root service-type snetconf stelnet
+ssh server-source all-interface
+ssh ipv6 server-source all-interface
+ssh authorization-type default aaa
+#
+ssh server cipher aes256_gcm aes128_gcm aes256_ctr aes192_ctr aes128_ctr aes256_cbc aes128_cbc 3des_cbc
+ssh server hmac sha2_256_96 sha2_256 sha1_96
+ssh server key-exchange dh_group_exchange_sha256 dh_group_exchange_sha1 ecdh_sha2_nistp256 ecdh_sha2_nistp384 ecdh_sha2_nistp521 sm2_kep
+#
+ssh server publickey dsa ecc rsa rsa_sha2_256 rsa_sha2_512
+#
+ssh server dh-exchange min-len 1024
+#
+ssh client publickey dsa ecc rsa rsa_sha2_256 rsa_sha2_512
+#
+ssh client cipher aes256_gcm aes128_gcm aes256_ctr aes192_ctr aes128_ctr aes256_cbc aes128_cbc 3des_cbc
+ssh client hmac sha2_512 sha2_256_96 sha2_256 sha1 sha1_96 md5 md5_96
+ssh client key-exchange dh_group_exchange_sha256 dh_group_exchange_sha1 dh_group14_sha1 dh_group1_sha1 ecdh_sha2_nistp256 ecdh_sha2_nistp384 ecdh_sha2_nistp521 sm2_kep
+#
+tunnel-policy IPRAN
+ tunnel select-seq ipv6 srv6-te-policy load-balance-number 1
+#
+user-interface maximum-vty 15
+#
+user-interface con 0
+ authentication-mode password
+ set authentication password cipher $1c$T:nK3IWce>$Z/EO-"KU<GukgiHk<c#5<ss]!&"v5!d+V<<Qm]m,$
+#
+user-interface aux 0
+#
+user-interface vty 0 14
+ authentication-mode aaa
+ user privilege level 3
+ idle-timeout 0 0
+ protocol inbound telnet
+#
+netconf
+ activate module huawei-ip
+#
+local-aaa-server
+#
+warranty
+#
+l2tp-group default-lac
+ tunnel name HUAWEI
+#
+l2tp-group default-lns
+ tunnel name HUAWEI
+#
+return
